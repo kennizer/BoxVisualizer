@@ -6,7 +6,22 @@
 .max-width {
     width: 100%
 }
-.orange {
+.width_no_care {
+    width: 30%;
+}
+.orange-border {
     border-color: orange;
-    background-color: red
+}
+.green {
+    background-color: green;
+}
+.blue {
+    background-color: blue;
+}
+.red {
+    background-color: red;
+}
+.border_pretty {
+    border: solid 1px; 
+    border-radius: 3px
 }
