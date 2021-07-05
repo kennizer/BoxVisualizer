@@ -1,0 +1,13 @@
+.border {
+    border: solid 1px
+}
+.padding-top-fix {
+    position: relative;
+    top: 30px
+}
+.border {
+    border: 1px solid
+}
+.selected {
+    background-color: orange;
+}

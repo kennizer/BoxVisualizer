@@ -6,7 +6,7 @@ export default class BFS extends React.Component {
     constructor (props) {
         super(props)
         let max_rows = 24 
-        let max_cols = 12 * 4 - 2
+        let max_cols = 12 * 3
         var items = []
         for (let i=0; i<max_rows; i++) {
             let row = [] 
@@ -27,42 +27,81 @@ export default class BFS extends React.Component {
             animation: [], 
             path: [],
             matrix: items,
-            selected: false, 
+            confirmed_selected: false,
+            start_selected: false, 
+            end_selected: false, 
             confirmed_select: false,
             confirmed_start: false, 
             confirmed_end: false,
-            switchSelect: null
+            switchSelect: null,
+            animated: false
         }
         
     }
     render () {
+        console.log(this.state.path)
+        console.log(this.state.animation)
         let matrixRender = this.state.matrix.map((item,i)=>{
             let cols = item.map((col,j)=>{
                     if (i===this.state.start_x && j===this.state.start_y) {
-                        return (<Col key ={"Col"+j} onClick={()=>this.selectMatrix(i,j)} 
+                        return (<Col key ={"Col"+j} onClick={()=>this.selectMatrix()} 
                         lg = "1"
                         onMouseOver={()=>this.hoverMatrix(i,j)}
-                        className={"bfs blue"}><br></br>
+                        className={"bfs start"}><br></br>
                         </Col>)
                     }
                     else if (i===this.state.end_x && j===this.state.end_y) {
-                        return (<Col key ={"Col"+j} onClick={()=>this.selectMatrix(i,j)} 
+                        return (<Col key ={"Col"+j} onClick={()=>this.selectMatrix()} 
                         lg = "1"
                         onMouseOver={()=>this.hoverMatrix(i,j)}
-                        className={"bfs red"}><br></br>
+                        className={"bfs end"}><br></br>
                         </Col>)
                     }
                     else if (i<=this.state.rows-1 && j<=this.state.cols-1) {
-                        return (<Col key ={"Col"+j} onClick={()=>this.selectMatrix(i,j)} 
+                        if (this.state.animated) {
+                            let spreadIndex = this.state.animation.indexOf(
+                            this.state.animation.find((lst)=>{
+                                return lst[0]===i && lst[1] === j 
+                            })
+                            )
+                            let pathIndex = this.state.path.indexOf(
+                            this.state.path.find((lst)=>{
+                                return lst[0]===i && lst[1] === j
+                            }))
+                            let style = {
+                            }
+                            if (spreadIndex!==-1) {
+                                if (pathIndex!==-1) {
+                                    style = {
+                                        animation: spreadIndex * 100 +"ms spread 1s forwards,"+ (spreadIndex*100 +1000) +"ms path 2s forwards"
+                                    }
+                                }
+                                else {
+                                    style = {
+                                        animation: spreadIndex * 100 +"ms spread 0.5s forwards"
+                                    }
+                                }
+                            }
+                            return (<Col key ={"Col"+j} style = {style} onClick={()=>this.selectMatrix()} 
                         lg = "1"
                         onMouseOver={()=>this.hoverMatrix(i,j)}
-                        className={"bfs orange-border green"}><br></br>
+                        className={"bfs selected-border other"}><br></br>
                         </Col>)
+                        }
+                        else {
+                            return (<Col key ={"Col"+j} onClick={()=>this.selectMatrix()} 
+                        lg = "1"
+                        onMouseOver={()=>this.hoverMatrix(i,j)}
+                        className={"bfs selected-border other"}><br></br>
+                        </Col>)
+
+                        }
+                        
                     }
                     else {
                         return (<Col key ={"Col"+j} 
                         lg= "1"
-                        onClick={()=>this.selectMatrix(i,j)} 
+                        onClick={()=>this.selectMatrix()} 
                         onMouseOver={()=>this.hoverMatrix(i,j)}
                         className={"bfs"}><br></br>
                         </Col>)
@@ -76,32 +115,31 @@ export default class BFS extends React.Component {
         })
         const notificationRender = this.loadNotification()
         return (
-            <Container fluid>
+            <Container>
                 <Row>
-                    <Col xs = {11}>
+                    <Col xs = {10}>
                         {matrixRender}
                     </Col>
-                    <Col xs = {1}>
+                    <Col xs = {2}>
                         {notificationRender}
                     </Col>
                 </Row>
             </Container>
         )
     }
-    selectMatrix = (i,j)=> {
+    selectMatrix = ()=> {
         if (!this.state.confirmed_select) {
             this.setState({selected:!this.state.selected})
         }
         else {
-            if (this.state.switchSelect==null) {
-                if (!this.state.switchSelect) {
-                    this.setState({start_x: i, start_y:j})
+            if (this.state.switchSelect!=null) {
+                if (this.state.switchSelect) {
+                    this.setState({start_selected:this.state.confirmed_start || !this.state.start_selected})
                 }
                 else {
-                    this.setState({end_x: i, end_y:j})
+                    this.setState({end_selected: this.state.confirmed_end || !this.state.end_selected})
                 }
             }
-            
         }
         
     }
@@ -112,12 +150,12 @@ export default class BFS extends React.Component {
         else if (!this.state.confirmed) {
             if (this.state.switchSelect!=null) {
                 if (this.state.switchSelect) {
-                    if (!this.state.confirmed_start && i<this.state.rows && j<this.state.cols) {
+                    if (!this.state.start_selected && i<this.state.rows && j<this.state.cols) {
                         this.setState({start_x: i, start_y:j})
                     }
                 }
                 else {
-                    if (!this.state.confirmed_end  && i<this.state.rows && j<this.state.cols) {
+                    if (!this.state.end_selected  && i<this.state.rows && j<this.state.cols) {
                         this.setState({end_x: i, end_y:j})
                     }
                 }
@@ -126,51 +164,98 @@ export default class BFS extends React.Component {
 
     }
     loadNotification = () => {
-        if (this.state.confirmed_select) {
-            let buttonStart = this.buttonLock(this.state.start_x,this.state.start_y,true)
-            let buttonEnd = this.buttonLock(this.state.end_x,this.state.end_y,false)
-            return (
-                <Container>
-                    <Row>
-                        <p>Pick one of the two buttons in order to select starting and ending points</p>
-                    </Row>
-                    <Container className="border_pretty">
-                        <h1>Starting Point: </h1>
-                        <p>Row: {this.state.start_x}</p>
-                        <p>Col: {this.state.start_y}</p>
-                        {buttonStart}
-                    </Container>
-                    <Container className="border_pretty">
-                        <h1>Ending Point: </h1>
-                        <p>Row: {this.state.end_x}</p>
-                        <p>Col: {this.state.end_y}</p>
-                        {buttonEnd}
-                    </Container>
-                </Container>
-            )
-        }
-        else {
-            if (this.state.selected) {
-                return (<Container fluid>
-                    <Row className = "border_pretty">
-                        <p>Your Current Bounds</p>
-                        <p> Row: {this.state.rows} Col: {this.state.cols}</p>
-                    </Row>
-                    <Row>
-                        <Button variant="info" onClick = {()=>this.confirmSelection()}>Confirm Selection?</Button>
-                    </Row>
-                </Container>)
+        if (this.state.confirmed_start && this.state.confirmed_end) {
+            if (!this.state.animated) {
+                return (
+                    <Container>
+                            <Row className="border_pretty">
+                                <h4 className="text-center">Start Point</h4>
+                                <p>Row: {this.state.start_x}</p>
+                                <p>Col: {this.state.start_y}</p>
+                            </Row>
+                            <Row className="border_pretty">
+                                <h4 className="text-center">Ending Point</h4>
+                                <p>Row: {this.state.end_x}</p>
+                                <p>Col: {this.state.end_y}</p>
+                            </Row>
+                            <Row className="border_pretty">
+                                <Button onClick={() => this.animate()}>Animate BFS?</Button>
+                            </Row>
+                        </Container>
+                )
             }
             else {
-                return (<Container>
-                    <Row className="border_pretty">
-                    <p>Pick your bounds</p>
-                    <p>Row: {this.state.rows}</p>
-                    <p>Col: {this.state.cols}</p>
-                    </Row>
-                </Container>)
+                return (
+                    <Container>
+                            <Row className="border_pretty">
+                                <h4 className="text-center">Start Point</h4>
+                                <p>Row: {this.state.start_x}</p>
+                                <p>Col: {this.state.start_y}</p>
+                            </Row>
+                            <Row className="border_pretty">
+                                <h4 className="text-center">Ending Point</h4>
+                                <p>Row: {this.state.end_x}</p>
+                                <p>Col: {this.state.end_y}</p>
+                            </Row>
+                            <Row className="border_pretty">
+                                <Button onClick={() => this.animate()}>Animate BFS?</Button>
+                                <Button onClick={() => this.reset()}>Reset BFS?</Button>
+                            </Row>
+                        </Container>
+                )
             }
         }
+        else {
+            if (this.state.confirmed_select) {
+                let selectingFor = this.currentSelect()
+                let buttonStart = this.buttonLock(this.state.start_x,this.state.start_y,true)
+                let buttonEnd = this.buttonLock(this.state.end_x,this.state.end_y,false)
+                return (
+                    <Container>
+                        <Row className="border_pretty">
+                            <p>Click On Coloend Box To Select Starting/Ending Point</p>
+                            {selectingFor}
+                        </Row>
+    
+                        <Row className="border_pretty">
+                            <h4 className = "text-center">Start Point</h4>
+                            <p>Row: {this.state.start_x}</p>
+                            <p>Col: {this.state.start_y}</p>
+                            {buttonStart}
+                        </Row>
+                        <Row className="border_pretty">
+                            <h4 className="text-center">Ending Point</h4>
+                            <p>Row: {this.state.end_x}</p>
+                            <p>Col: {this.state.end_y}</p>
+                            {buttonEnd}
+                        </Row>
+                    </Container>
+                )
+            }
+            else {
+                if (this.state.selected) {
+                    return (<Container fluid>
+                        <Row className = "border_pretty">
+                            <p>Your Current Bounds</p>
+                            <p> Row: {this.state.rows} Col: {this.state.cols}</p>
+                        </Row>
+                        <Row>
+                            <Button variant="info" onClick = {()=>this.confirmSelection()}>Confirm Selection?</Button>
+                        </Row>
+                    </Container>)
+                }
+                else {
+                    return (<Container>
+                        <Row className="border_pretty">
+                        <p>Pick your bounds</p>
+                        <p>Row: {this.state.rows}</p>
+                        <p>Col: {this.state.cols}</p>
+                        </Row>
+                    </Container>)
+                }
+            }
+        }
+        
     }
     confirmSelection = () => {
         this.setState({confirmed_select: true})
@@ -186,29 +271,89 @@ export default class BFS extends React.Component {
             }
             else {
                 if (!this.state.confirmed_start) {
-                    return (<Button variant="primary" onClick={()=>this.lockInSelection(true)}>
-                    Lock In Starting Point?</Button>)
+                    if (this.state.start_selected) {
+                        return (<Button variant="primary" onClick={()=>this.lockInSelection(true)}>
+                        Lock In Starting Point?</Button>)
+                    }
+                    else {
+                        return (<Button variant="primary" onClick={()=>this.pointSelection(true)}>
+                    Select Starting Point?</Button>)
+                    }
+                    
                 }
                 else {
                     return (<Button variant="primary" >
-                    Locked In?</Button>)
+                    Locked In</Button>)
                 }
             }
         }
         else {
             if (i<0 && j<0) {
                 return (<Button variant="danger" onClick={()=>this.pointSelection(false)}>
-                    ENding Point Selection</Button>)
+                    Click Here To Select Ending Point</Button>)
             }
             else {
                 if (!this.state.confirmed_end) {
-                    return (<Button variant="danger" onClick={()=>this.lockInSelection(false)}>
-                    Lock In Starting Point?</Button>)
+                    if (this.state.end_selected) {
+                        return (<Button variant="danger" onClick={()=>this.lockInSelection(false)}>
+                        Lock In Ending Point?</Button>)
+                    }
+                    else {
+                        return (<Button variant="danger" onClick={()=>this.lockInSelection(false)}>
+                        Select Ending Point</Button>)
+                    }
+                   
                 }
                 else {
-                    return (<Button variant="primary" >
-                    Locked In?</Button>)
+                    return (<Button variant="danger" >
+                    Locked In</Button>)
                 }
+            }
+        }
+    }
+    currentSelect = () =>{
+        if (this.state.switchSelect==null) {
+            return (
+                <Container>
+                    <Row>
+                    <Col>
+                        Selecting for None
+                    </Col>
+                    <Col className="bfs neutral-color" onClick={()=>this.pointSelection(true)}>
+                        <br></br>
+                    </Col>
+                    </Row>
+                </Container>
+            )
+        }
+        else {
+            if (this.state.switchSelect) {
+                return (
+                    <Container>
+                        <Row>
+                        <Col>
+                            Selecting for Start Point
+                        </Col>
+                        <Col className="bfs start" onClick={()=>this.pointSelection(false)}>
+                            <br></br>
+                        </Col>
+                        </Row>
+                    </Container>
+                )
+            }
+            else {
+                return (
+                    <Container>
+                        <Row>
+                        <Col>
+                            Selecting for End Point
+                        </Col>
+                        <Col className="bfs end" onClick={()=>this.pointSelection(true)}>
+                            <br></br>
+                        </Col>
+                        </Row>
+                    </Container>
+                )
             }
         }
     }
@@ -219,5 +364,107 @@ export default class BFS extends React.Component {
         else {
             this.setState({confirmed_end:true})
         }
+    }
+    animate = () => {
+        this.setState({animated:!this.state.animated})
+        
+        let start_x = this.state.start_x 
+        let start_y = this.state.start_y 
+        let end_x = this.state.end_x 
+        let end_y = this.state.end_y
+        let rows = this.state.rows 
+        let cols = this.state.cols
+        let queue = [[start_x,start_y]] 
+        let visited = [] 
+        let bfsTracker = new Map() 
+        let found = false; 
+
+        bfsTracker.set(start_x+" "+start_y, null)
+        while (queue.length>0 && !found) {
+            let cord = queue.shift() 
+            visited.push(cord)
+
+            let candidates = [
+                [
+                    cord[0]-1, cord[1]
+                ],
+                [
+                    cord[0]+1, cord[1]
+                ],
+                [
+                    cord[0], cord[1]-1
+                ],
+                [
+                    cord[0]-1, cord[1]-1
+                ],
+                [
+                    cord[0]+1, cord[1]-1
+                ],
+                [
+                    cord[0]+1, cord[1]+1
+                ],
+                [
+                    cord[0]-1, cord[1]+1
+                ]
+            ]
+            candidates = candidates.filter((coord)=>{
+                return coord[0]>=0 && coord[0]<rows && 
+                coord[1]>=0 && coord[1]<cols && 
+                bfsTracker.get(coord[0]+" "+ coord[1])===undefined
+            })
+            candidates.forEach((candidate)=>{
+                let s = candidate[0] + " " + candidate[1]
+                bfsTracker.set(s,[cord[0],cord[1]])
+            })
+            found = cord[0]===end_x && cord[1]===end_y
+
+            queue.push(...candidates)
+        }
+        this.backtrack(bfsTracker, [end_x,end_y])
+        this.setState({animation:visited})
+    }
+    backtrack = (bfsTracker, coord) => {
+        let coord_x = coord[0]
+        let coord_y = coord[1]
+        let path = [[coord_x,coord_y]] 
+        let item = bfsTracker.get(coord_x+" "+coord_y)
+        while (item!==null) {
+            path.push([item[0], item[1]])
+            let s = item[0]+ " "+ item[1]
+            item = bfsTracker.get(s)
+        }
+        path = path.reverse() 
+        console.log(path)
+        this.setState({path:path})
+    }
+    reset = () => {
+        let items = []
+        for (let i=0; i<this.state.max_rows; i++) {
+            let row = [] 
+            for (let j=0; j<this.state.max_cols; j++) {
+                row.push(0)
+            }
+            items.push(row)
+        }
+        this.setState({
+            cols: -1, 
+            rows: -1, 
+            start_x: -1, 
+            start_y: -1, 
+            end_x: -1, 
+            end_y: -1,
+            animation: [], 
+            path: [],
+            matrix: items,
+            selected: false,
+            confirmed_selected: false,
+            start_selected: false, 
+            end_selected: false, 
+            confirmed_select: false,
+            confirmed_start: false, 
+            confirmed_end: false,
+            switchSelect: null,
+            animated: false
+        })
     }
 }

@@ -1,0 +1,16 @@
+.path {
+    animation-name: pathCreated; 
+    animation-duration: 5s;
+    animation-fill-mode: forwards;
+}
+.border {
+    border: 1px solid;
+}
+.center {
+    text-align: center;
+}
+@keyframes pathCreated {
+    to {
+        background-color: orange; 
+    }
+}

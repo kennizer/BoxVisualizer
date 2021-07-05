@@ -7,6 +7,10 @@ import history from './history'
 
 import Home from './pages/home/home'
 import BFS from './pages/bfs/bfs.js'
+import DFS from './pages/dfs/dfs.js'
+import SequenceAlignment from './pages/seq_alignment/seq_alignment'
+import Manhattan from "./pages/manhattan/manhattan";
+
 export default class Visualizer extends React.Component {
     constructor(props) {
         super(props)
@@ -17,6 +21,9 @@ export default class Visualizer extends React.Component {
     render () {
         const homePath = (
             <Route exact path = "/">
+                <head>
+                    <title>Box Visualizer</title>
+                </head>
                 <Container>
                     <Row>
                         <Header/>
@@ -29,12 +36,52 @@ export default class Visualizer extends React.Component {
         )
         const bfsPath = (
             <Route exact path = "/bfs">
+                    <title>Breadth First Search</title>
                 <Container>
                     <Row>
                         <Header/>
                     </Row>
                     <Row>
                         <BFS/>
+                    </Row>
+                </Container>
+            </Route>
+        )
+        const dfsPath = (
+            <Route exact path = "/dfs">
+                    <title>Depth First Search</title>
+                <Container>
+                    <Row>
+                        <Header/>
+                    </Row>
+                    <Row>
+                        <DFS/>
+                    </Row>
+                </Container>
+            </Route>
+        )
+        const manhattanPath = (
+            <Route exact path = "/manhattan">
+                    <title>Manhattan Problem</title>
+                <Container>
+                    <Row>
+                        <Header/>
+                    </Row>
+                    <Row>
+                        <Manhattan/>
+                    </Row>
+                </Container>
+            </Route>
+        )
+        const sequenceAlignmentPath = (
+            <Route exact path = "/sequenceAlignment">
+                    <title>Sequence Alignment</title>
+                <Container>
+                    <Row>
+                        <Header/>
+                    </Row>
+                    <Row>
+                        <SequenceAlignment/>
                     </Row>
                 </Container>
             </Route>
@@ -66,6 +113,9 @@ export default class Visualizer extends React.Component {
                 <Switch>
                     {homePath}
                     {bfsPath}
+                    {dfsPath}
+                    {sequenceAlignmentPath}
+                    {manhattanPath}
                 </Switch>
             </Router>
         )
