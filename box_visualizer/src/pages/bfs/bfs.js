@@ -201,6 +201,24 @@ export default class BFS extends React.Component {
                                 <Button onClick={() => this.animate()}>Animate BFS?</Button>
                                 <Button onClick={() => this.reset()}>Reset BFS?</Button>
                             </Row>
+                            <Row className="border_pretty">
+                                <Row className="border_pretty">
+                                    <Col>
+                                        Visited 
+                                    </Col>
+                                    <Col className="selected-border visited">
+                                        <br></br>
+                                    </Col>
+                                </Row>
+                                <Row className="border_pretty">
+                                    <Col>
+                                        Path 
+                                    </Col>
+                                    <Col className="selected-border path">
+                                        <br></br>
+                                    </Col>
+                                </Row>
+                            </Row>
                         </Container>
                 )
             }

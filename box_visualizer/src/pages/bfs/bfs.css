@@ -15,6 +15,12 @@
 .selected-border {
     border-color: orange;
 }
+.visited {
+    background-color: purple;
+}
+.path {
+    background-color:rgb(57, 208, 219);
+}
 .other {
     background-color: green;
 }

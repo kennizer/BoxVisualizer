@@ -27,6 +27,12 @@
 .neutral-color {
     background-color: gray;
 }
+.visited {
+    background-color: purple;
+}
+.path {
+    background-color:rgb(57, 208, 219);
+}
 .border_pretty {
     border: solid 1px; 
     border-radius: 3px
